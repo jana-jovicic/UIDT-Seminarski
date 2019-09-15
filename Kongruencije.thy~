@@ -98,6 +98,7 @@ proof (induction k)
     qed
   qed
 
+
 (* Tvrdjenje 3:  \<equiv>m je relacija ekvivalencije *)
 (* Relacija je relacija ekvivalencije ako je refleksivna, simetricna i tranzitivna.*)
 
@@ -275,6 +276,7 @@ proof-
     unfolding kongruentni_po_modulu_def
     using less_1_mult by blast
 qed
+
 
 
 (* Provera da li postoji resenje jednacine a*x \<equiv> b (mod m) *)

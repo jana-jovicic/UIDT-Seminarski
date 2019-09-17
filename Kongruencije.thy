@@ -251,7 +251,7 @@ proof-
     by simp
 qed
 
-lemma 
+lemma tvrdjenje_6:
   assumes "m > 1"
   assumes "n > 1"
   assumes "nzd m n = 1"
@@ -274,6 +274,82 @@ proof-
     using assms
     unfolding kongruentni_po_modulu_def
     using less_1_mult by blast
+qed
+
+(* a \<equiv>m b and c \<equiv>m d \<Longrightarrow> a−c \<equiv>m b−d *)
+lemma tvrdjenje_7:
+  assumes "m > 1"
+  assumes "kongruentni_po_modulu a b m"
+  assumes "kongruentni_po_modulu c d m"
+  shows "kongruentni_po_modulu (a - c) (b - d) m"
+proof-
+  have *: "m dvd (a - b)"
+    using assms(2) kongruentni_po_modulu_def
+    by auto
+  have **: "m dvd (c - d)"
+    using assms(3) kongruentni_po_modulu_def
+    by auto
+  have "m dvd ((a - b) - (c - d))"
+    using * **
+    by auto
+  hence "m dvd ((a - c) - (b - d))"
+    by (simp add: algebra_simps)
+  hence "(m > 1) \<and> (m dvd (a - c) - (b - d))"
+      using assms(1)
+      by simp
+  thus ?thesis
+    unfolding kongruentni_po_modulu_def
+    by simp
+qed
+
+(* a \<equiv>m 0 iff m|a;  *)
+lemma tvrdjenje_8:
+  assumes "m > 1"
+  shows "kongruentni_po_modulu a 0 m \<longleftrightarrow> m dvd a"
+proof
+  show "kongruentni_po_modulu a 0 m \<Longrightarrow> int m dvd a"
+  proof-
+    assume "kongruentni_po_modulu a 0 m"
+    hence "m dvd (a - 0)"
+      unfolding kongruentni_po_modulu_def
+      by simp
+    thus "m dvd a"
+      by simp
+  qed
+next
+  show "m dvd a \<Longrightarrow> kongruentni_po_modulu a 0 m"
+  proof-
+    assume "m dvd a"
+    hence "m dvd (a - 0)"
+      by simp
+    thus "kongruentni_po_modulu a 0 m"
+      unfolding kongruentni_po_modulu_def
+      using assms
+      by simp
+  qed
+qed
+
+(* If a \<equiv> b mod m, and c > 1, then ca \<equiv> cb mod cm *)
+lemma tvrdjenje_9:
+  assumes "c > 1"
+  assumes "m > 1"
+  assumes "kongruentni_po_modulu a b m"
+  shows "kongruentni_po_modulu (c*a) (c*b) (c*m)"
+proof-
+  have *: "c*m > 1"
+    using assms(1) assms(2) less_1_mult 
+    by blast
+  have "m dvd (a - b)"
+    using assms kongruentni_po_modulu_def
+    by auto
+  hence "c*m dvd c*(a - b)"
+    by simp
+  hence "c*m dvd (c*a - c*b)"
+    by (simp add: algebra_simps)
+  thus ?thesis
+    unfolding kongruentni_po_modulu_def
+    using assms *
+    by simp
 qed
 
 

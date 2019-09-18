@@ -489,8 +489,8 @@ lemma kineska_teorema_o_ostacima:
   fixes x::nat
   fixes as ms :: "nat list"
   assumes "length as = length ms"
-shows "((\<forall>i j . (k = length as) \<and> (k = length ms) \<and> i\<in>set([0..<k]) \<and> j\<in>set([0..<k]) \<and> i\<noteq>j \<and> ((nzd (ms ! i) (ms ! j)) dvd ((as ! i) - (as ! j))) \<and> jeste_resenje_sistema x as ms ) \<longrightarrow> 
-        ((postoji_resenje_sistema [(as!0)..<(as!k)] [(ms!0)..<(ms!k)]) \<and> (\<exists>t . jeste_resenje_sistema (x + (nzs_liste_brojeva ms)*t) as ms)))"
+  shows "((\<forall>i j . (k = length as) \<and> (k = length ms) \<and> i\<in>set([0..<k]) \<and> j\<in>set([0..<k]) \<and> i\<noteq>j \<and> ((nzd (ms ! i) (ms ! j)) dvd ((as ! i) - (as ! j))) \<and> jeste_resenje_sistema x as ms ) \<longrightarrow> 
+        ((postoji_resenje_sistema as ms) \<and> (\<exists>t . jeste_resenje_sistema (x + (nzs_liste_brojeva ms)*t) as ms)))"
 proof(induction k)
 case 0
   then show ?case
@@ -503,33 +503,34 @@ next
 
     have prvi_deo: "(\<forall>i j. Suc k = length as \<and> Suc k = length ms \<and>
           i \<in> set [0..<Suc k] \<and> j \<in> set [0..<Suc k] \<and> i \<noteq> j \<and> 
-          nzd (ms ! i) (ms ! j) dvd as ! i - as ! j) \<Longrightarrow> postoji_resenje_sistema [(as!0)..<(as ! Suc k)] [(ms!0)..<(ms ! Suc k)]"
+          nzd (ms ! i) (ms ! j) dvd as ! i - as ! j) \<and> (jeste_resenje_sistema x (take k as) (take k ms))
+           \<Longrightarrow> postoji_resenje_sistema as ms"
     proof-
       assume leva_strana_implikacije: "(\<forall>i j. Suc k = length as \<and> Suc k = length ms \<and>
           i \<in> set [0..<Suc k] \<and> j \<in> set [0..<Suc k] \<and> i \<noteq> j \<and> 
-          nzd (ms ! i) (ms ! j) dvd (as ! i - as ! j))"
+          nzd (ms ! i) (ms ! j) dvd (as ! i - as ! j)) \<and> jeste_resenje_sistema x (take k as) (take k ms)"
 
-      have 1: "jeste_resenje_sistema x [(as!0)..<(as!k)] [(ms!0)..<(ms!k)]"
+      have 1: "jeste_resenje_sistema x (take k as) (take k ms)"
         using leva_strana_implikacije
         by blast
 
       (* Na osnovu induktivne hipoteze znamo da postoji resenje sistema od k jednacina: *)
-      have postoji_res_sistema_duzine_k: "postoji_resenje_sistema [(as!0)..<(as!k)] [(ms!0)..<(ms!k)]"
+      have postoji_res_sistema_duzine_k: "postoji_resenje_sistema (take k as) (take k ms)"
         using 1 jeste_resenje_sledi_postoji_resenje_sistema Suc
         by blast
 
       (* Dokaz da postoji resenje jednacine x \<equiv> a_k+1 (mod m_k+1) *)
-      have postoji_res_poslednje_jednacine: "postoji_resenje ((nzs_liste_brojeva [(ms!1)..<(ms!k)])) ((as ! Suc k)-x) (ms ! Suc k)"
+      have postoji_res_poslednje_jednacine: "postoji_resenje ((nzs_liste_brojeva (take k ms))) ((as ! Suc k)-x) (ms ! Suc k)"
       proof-
         (* nzd(m_i, m_k+1) | (a_k+1 - a_i): *)
         have deli_aSuc_minus_ai: "\<forall>i . i\<in>set[0..<k] \<and> ((nzd (ms ! i) (ms ! Suc k)) dvd ((as ! Suc k) - (as ! i)))"
           by (metis add.right_neutral diff_add_zero linordered_semidom_class.add_diff_inverse not_one_less_zero pomocna3_za_kinesku_teoremu zero_neq_one)
 
         (* Dokaz da nzd(m_i, m_k+1) | (a_i - x): *)
-        have *:"jeste_resenje_sistema x as ms"
+        have *:"jeste_resenje_sistema x (take k as) (take k ms)"
           using "1" jeste_resenje_sistema_def
           by blast
-        have **:"jeste_resenje_sistema x as ms \<longrightarrow> ( \<forall>i . i\<in>set[0..<k] \<and> ((ms ! i) dvd ((as ! i) - x)))"
+        have **:"jeste_resenje_sistema x (take k as) (take k ms) \<longrightarrow> ( \<forall>i . i\<in>set[0..<k] \<and> ((ms ! i) dvd ((as ! i) - x)))"
           using jeste_resenje_sistema_def
           by blast
         have "\<forall>i . i\<in>set[0..<k] \<and> ((ms ! i) dvd ((as ! i) - x))"
@@ -554,15 +555,15 @@ next
           by blast
 
         (* \<forall>i nzd(m_i, m_k+1) | (a_k+1 - x) \<Longrightarrow> nzs(nzd(m_1, m_k+1), ..., nzd(m_k, m_k+1)) | (a_k+1 - x) *)
-        hence "nzs_liste_brojeva (lista_nzd ([(ms!0)..<(ms!k)]) (ms ! Suc k)) dvd ((as ! Suc k) - x)"
+        hence "nzs_liste_brojeva (lista_nzd (take k ms) (ms ! Suc k)) dvd ((as ! Suc k) - x)"
           using pomocna2_za_kinesku_teoremu  "*" jeste_resenje_sistema_def
           by blast
         (* \<Longrightarrow> nzd(nzs(m1,...,mk), m_k+1) | (a_k+1 - x) *)
-        hence "(nzd (nzs_liste_brojeva [(ms!0)..<(ms!k)]) (ms ! Suc k)) dvd ((as ! Suc k) - x)"
+        hence "(nzd (nzs_liste_brojeva (take k ms)) (ms ! Suc k)) dvd ((as ! Suc k) - x)"
           using 1 pomocna1_za_kinesku_teoremu
           by simp
         (* \<Longrightarrow> postoji resenje jednacine nzs(m1,...,mk)*y \<equiv> (a_k+1 - x) mod m_k+1 *)
-        thus "postoji_resenje ((nzs_liste_brojeva [ms ! 1..<ms ! k] )) (as ! Suc k - x) (ms ! Suc k)"
+        thus "postoji_resenje ((nzs_liste_brojeva (take k ms))) (as ! Suc k - x) (ms ! Suc k)"
           unfolding postoji_resenje_def
           using "*" jeste_resenje_sistema_def by blast
 
@@ -570,7 +571,7 @@ next
 
       (* Posto postoji resenje sistema od k jednacina i postoji resenje te poslednje jednacine,
          onda postoji i resenje celog sistema od k+1 jednacina. *)
-      have *:"postoji_resenje_sistema [(as!0)..<(as ! Suc k)] [(ms!0)..<(ms ! Suc k)]"
+      have *:"postoji_resenje_sistema as ms"
         using postoji_res_sistema_duzine_k postoji_res_poslednje_jednacine pomocna4_za_kinesku_teoremu
         using "1" jeste_resenje_sistema_def 
         by blast
@@ -686,7 +687,7 @@ lemma ojl_proizvod_uopstenje:
   fixes ns::"nat list"
   assumes "\<forall>n1 n2 . n1\<in>set(ns) \<and> n2\<in>set(ns) \<and> n1 \<noteq> n2 \<and> nzd n1 n2 = 1"
   shows "Ojlerova_fja (fold ( * ) ns 1) = fold (\<lambda>n acc . acc * Ojlerova_fja n) ns 1"
-  using assms by blast
+  using assms by blast 
 
 fun proizvod_prostih :: "nat list \<Rightarrow> nat list \<Rightarrow> nat" where
 "proizvod_prostih ps as = fold (\<lambda> par acc . (fst par)^(snd par) * acc ) (zip ps as) 1"

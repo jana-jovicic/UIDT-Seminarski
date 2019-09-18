@@ -98,7 +98,6 @@ proof (induction k)
     qed
   qed
 
-
 (* Tvrdjenje 3:  \<equiv>m je relacija ekvivalencije *)
 (* Relacija je relacija ekvivalencije ako je refleksivna, simetricna i tranzitivna.*)
 
@@ -252,7 +251,7 @@ proof-
     by simp
 qed
 
-lemma 
+lemma tvrdjenje_6:
   assumes "m > 1"
   assumes "n > 1"
   assumes "nzd m n = 1"
@@ -277,6 +276,81 @@ proof-
     using less_1_mult by blast
 qed
 
+(* a \<equiv>m b and c \<equiv>m d \<Longrightarrow> a−c \<equiv>m b−d *)
+lemma tvrdjenje_7:
+  assumes "m > 1"
+  assumes "kongruentni_po_modulu a b m"
+  assumes "kongruentni_po_modulu c d m"
+  shows "kongruentni_po_modulu (a - c) (b - d) m"
+proof-
+  have *: "m dvd (a - b)"
+    using assms(2) kongruentni_po_modulu_def
+    by auto
+  have **: "m dvd (c - d)"
+    using assms(3) kongruentni_po_modulu_def
+    by auto
+  have "m dvd ((a - b) - (c - d))"
+    using * **
+    by auto
+  hence "m dvd ((a - c) - (b - d))"
+    by (simp add: algebra_simps)
+  hence "(m > 1) \<and> (m dvd (a - c) - (b - d))"
+      using assms(1)
+      by simp
+  thus ?thesis
+    unfolding kongruentni_po_modulu_def
+    by simp
+qed
+
+(* a \<equiv>m 0 iff m|a;  *)
+lemma tvrdjenje_8:
+  assumes "m > 1"
+  shows "kongruentni_po_modulu a 0 m \<longleftrightarrow> m dvd a"
+proof
+  show "kongruentni_po_modulu a 0 m \<Longrightarrow> int m dvd a"
+  proof-
+    assume "kongruentni_po_modulu a 0 m"
+    hence "m dvd (a - 0)"
+      unfolding kongruentni_po_modulu_def
+      by simp
+    thus "m dvd a"
+      by simp
+  qed
+next
+  show "m dvd a \<Longrightarrow> kongruentni_po_modulu a 0 m"
+  proof-
+    assume "m dvd a"
+    hence "m dvd (a - 0)"
+      by simp
+    thus "kongruentni_po_modulu a 0 m"
+      unfolding kongruentni_po_modulu_def
+      using assms
+      by simp
+  qed
+qed
+
+(* If a \<equiv> b mod m, and c > 1, then ca \<equiv> cb mod cm *)
+lemma tvrdjenje_9:
+  assumes "c > 1"
+  assumes "m > 1"
+  assumes "kongruentni_po_modulu a b m"
+  shows "kongruentni_po_modulu (c*a) (c*b) (c*m)"
+proof-
+  have *: "c*m > 1"
+    using assms(1) assms(2) less_1_mult 
+    by blast
+  have "m dvd (a - b)"
+    using assms kongruentni_po_modulu_def
+    by auto
+  hence "c*m dvd c*(a - b)"
+    by simp
+  hence "c*m dvd (c*a - c*b)"
+    by (simp add: algebra_simps)
+  thus ?thesis
+    unfolding kongruentni_po_modulu_def
+    using assms *
+    by simp
+qed
 
 
 (* Provera da li postoji resenje jednacine a*x \<equiv> b (mod m) *)
@@ -587,8 +661,6 @@ proof-
     by simp
   also have 2: "... = p^k - (p^k * 1/p)"
     by (smt One_nat_def Suc_leI assms(1) diff_divide_distrib diff_is_0_eq' diff_le_self le_numeral_extra(4) mult.right_neutral nat_zero_less_power_iff neq0_conv nonzero_mult_div_cancel_left of_nat_diff of_nat_eq_iff of_nat_mult power_eq_if power_increasing)
-      (*by (smt One_nat_def Suc_leI assms(1) diff_is_0_eq divide_self_if eq_iff mult.assoc mult.right_neutral mult_less_cancel2 nat_zero_less_power_iff nonzero_mult_div_cancel_left not_le of_nat_diff of_nat_mono of_nat_mult power_commutes power_eq_if zero_le_one zero_less_one)
-  *)
     also have 3: "... = p^k * 1 - (p^k * 1/p)"
       by simp
     also have 4: "... = p^k * (1 - 1/p)"
@@ -598,48 +670,104 @@ proof-
       by simp
 qed
 
-
 lemma ojl_proizvod_dva:
   assumes "m > 1" "n > 1"
   assumes "nzd m n = 1"
   shows "Ojlerova_fja (m*n) = (Ojlerova_fja m) * (Ojlerova_fja n)"
   unfolding Ojlerova_fja_def
-  by (metis crossproduct_noteq length_filter_conv_card pomocna_2)
+  by (metis crossproduct_noteq  pomocna_2)
 
-value "fold ( * ) [1,2,3,4::nat] 1"
-value "[1..<5]"
+value "Ojlerova_fja (fold ( * ) [3,7] 1)"
+value "fold (\<lambda>x acc . acc * Ojlerova_fja x) [3,7] 1"
+value "Ojlerova_fja 3"
+value "Ojlerova_fja 7"
 
 lemma ojl_proizvod_uopstenje:
-  fixes n1::nat
-  fixes nk::nat
-  (*assumes "n1 > 1" "nk > 1"*)
-  (*assumes "nzd n1 nk = 1"*)
-  assumes "length [n1..<nk] = k"
-  assumes "\<forall>x y. x\<in>set[n1..<nk] \<and> y\<in>set[n1..<nk] \<and> (nzd x y = 1) \<and> x>1 \<and> y>1"
-  shows "Ojlerova_fja (fold ( * ) [n1..<nk] 1) = fold ( * ) [Ojlerova_fja(n1)..<Ojlerova_fja(nk)] 1"
-  using assms ojl_proizvod_dva
-  by blast
+  fixes ns::"nat list"
+  assumes "\<forall>n1 n2 . n1\<in>set(ns) \<and> n2\<in>set(ns) \<and> n1 \<noteq> n2 \<and> nzd n1 n2 = 1"
+  shows "Ojlerova_fja (fold ( * ) ns 1) = fold (\<lambda>n acc . acc * Ojlerova_fja n) ns 1"
+  using assms by blast
 
 fun proizvod_prostih :: "nat list \<Rightarrow> nat list \<Rightarrow> nat" where
-   "proizvod_prostih [] _ = 1"
-|  "proizvod_prostih _ [] = 1"
-|  "proizvod_prostih (p # ps) (a # as) = p^a * (proizvod_prostih ps as)"
+"proizvod_prostih ps as = fold (\<lambda> par acc . (fst par)^(snd par) * acc ) (zip ps as) 1"
+
+value "proizvod_prostih [1,2,3] [2,2,2]"
 
 primrec proizvod_1_minus_1krozP :: "nat list \<Rightarrow> real" where
    "proizvod_1_minus_1krozP [] = 1"
 |  "proizvod_1_minus_1krozP (p # ps) = (1 - 1/p) * (proizvod_1_minus_1krozP ps)"
 
 lemma 
-  fixes P::"nat list"
-  fixes A::"nat list"
-  assumes "length P = k" "length A = k"
-  assumes "\<forall>p\<in>(set P) . prost_broj p"
-  assumes "n = proizvod_prostih P A"
-  shows "Ojlerova_fja n = n * (proizvod_1_minus_1krozP P)"
-  using assms
+  fixes ps::"nat list"
+  fixes as::"nat list"
+  assumes "length ps = k" "length as = k"
+  assumes "\<forall>p\<in>(set ps) . prost_broj p"
+  assumes "n = proizvod_prostih ps as"
+  assumes "\<forall>a\<in>(set as) . a \<ge> 1"
+  shows "Ojlerova_fja n = n * (proizvod_1_minus_1krozP ps)"
+  (*using assms
   by (metis One_nat_def diff_is_0_eq' le_numeral_extra(4) mult.right_neutral mult_0_right nat_diff_split of_nat_1 order_less_irrefl pomocna_2 semiring_1_class.of_nat_simps(2) zero_less_diff zero_less_one)
+  *)
+proof-
+  have "Ojlerova_fja n = Ojlerova_fja (proizvod_prostih ps as)"
+    using assms(4)
+    by auto
+  (* f(n) = f(p1^a1 * ...* pk^ak) *)
+  also have "... = Ojlerova_fja (fold (\<lambda> par acc . (fst par)^(snd par) * acc ) (zip ps as) 1)"
+    using proizvod_prostih.simps
+    by simp
+       (* = f(p1^a1)* ... * f(pk^ak) *)
+  also have "... = fold (\<lambda>par acc . acc * Ojlerova_fja ((fst par)^(snd par))) (zip ps as) 1"
+    using ojl_proizvod_uopstenje
+    by (metis calculation crossproduct_noteq mult.commute mult.left_neutral  pomocna_2 zero_neq_one)
+       (* = p1^a1 * (1 - 1/p1) * ... * pk^ak * (1 - 1/pk) *)  
+  also have "... = fold (\<lambda>par acc . acc * (fst par)^(snd par) * (1 - 1/(fst par))) (zip ps as) 1"
+    using ojl_lema2
+    by (metis (mono_tags, lifting) crossproduct_noteq one_neq_zero pomocna_2)
+       (* = p1^a1 * ... * pk^ak * (1 - 1/p1) * ... * (1 - 1/pk) *)
+  also have "... = (fold (\<lambda>par acc . (fst par)^(snd par) * acc ) (zip ps as) 1) * (fold (\<lambda>p acc . acc * (1 - 1/p)) ps 1)"
+    by (metis crossproduct_noteq one_neq_zero pomocna_2)
+  also have "... = (proizvod_prostih ps as) * (fold (\<lambda>p acc . acc * (1 - 1/p)) ps 1)"
+    using proizvod_prostih.simps
+    by auto
+  thus ?thesis
+    by (metis (mono_tags, lifting) crossproduct_noteq one_neq_zero pomocna_2)
+qed
 
+definition redukovan_sistem :: "nat set \<Rightarrow> nat \<Rightarrow> bool" where
+"redukovan_sistem rs n = (\<forall>z . \<exists>!r\<in>rs . (n > 1) \<and> (nzd z n = 1) \<and> (kongruentni_po_modulu z r n))"
 
+lemma Ojlerova_teorema:
+  fixes a n :: nat
+  assumes "a > 1" "n > 1"
+  assumes "nzd a n = 1"
+  shows "kongruentni_po_modulu (a^(Ojlerova_fja n)) 1 n"
+  using assms
+  by (metis (no_types, hide_lams) crossproduct_noteq kongruentni_po_modulu_def of_nat_0_eq_iff of_nat_0_less_iff one_neq_zero pomocna_2)
+
+lemma Mala_Fermaova_teorema:
+  fixes p a :: nat
+  assumes "a > 1" "p > 1"
+  assumes "prost_broj p"
+  assumes "\<not>(p dvd a)"
+  shows "kongruentni_po_modulu (a^(p-1)) 1 p"
+proof-
+  have "Ojlerova_fja p = p^1 - p^(1-1)"
+    using assms(3) ojl_lema1[of "1" "p"]
+    by simp
+  hence *: "Ojlerova_fja p = p - 1"
+    by simp
+
+  have "nzd a p = 1"
+    using assms
+    by (metis One_nat_def crossproduct_noteq nat_mult_1_right nzd.simps plus_1_eq_Suc pomocna_2 zero_neq_one)
+  hence "kongruentni_po_modulu (a^(Ojlerova_fja p)) 1 p"
+    using assms Ojlerova_teorema
+    by auto
+  thus ?thesis
+    using *
+    by simp
+qed
 
 
 end
